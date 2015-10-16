@@ -39,19 +39,16 @@ if (!empty($errors)) {
     exit(-1);
 }
 
-$command = sprintf('%s build %s %s', $config['bin'], $config['json'], $config['webroot']);
+$command = sprintf('nohup php %s build %s %s -n 2>&1 >> /var/www/satis/webhook.log &', $config['bin'], $config['json'], $config['webroot']);
 if (null !== $config['user']) {
     $command = sprintf('sudo -u %s -i %s', $config['user'], $command);
 }
 
 $process = new Process($command);
-$exitCode = $process->run(function ($type, $buffer) {
-    if ('err' === $type) {
-        echo 'E';
-        error_log($buffer);
-    } else {
-        echo '.';
-    }
-});
+$process->run();
+// executes after the command finishes
+if (!$process->isSuccessful()) {
+    throw new \RuntimeException($process->getErrorOutput());
+}
 
-echo "\n\n" . ($exitCode === 0 ? 'Successful rebuild!' : 'Oops! An error occured!') . "\n";
+echo $process->getOutput();
