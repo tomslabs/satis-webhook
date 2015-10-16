@@ -10,6 +10,7 @@ if (!file_exists(__DIR__.'/config.yml')) {
 }
 
 $defaults = array(
+    'log' => 'webhook.log',
     'bin' => 'bin/satis',
     'json' => 'satis.json',
     'webroot' => 'web/',
@@ -31,6 +32,10 @@ if (!file_exists($config['webroot'])) {
     $errors[] = 'The webroot directory could not be found.';
 }
 
+if (!file_exists($config['log'])) {
+    $errors[] = 'The log file could not be found.';
+}
+
 if (!empty($errors)) {
     echo 'The build cannot be run due to some errors. Please, review them and check your config.yml:'."\n";
     foreach ($errors as $error) {
@@ -39,7 +44,7 @@ if (!empty($errors)) {
     exit(-1);
 }
 
-$command = sprintf('nohup php %s build %s %s -n 2>&1 >> /var/www/satis/webhook.log &', $config['bin'], $config['json'], $config['webroot']);
+$command = sprintf('nohup php %s build %s %s -n 2>&1 >> %s &', $config['bin'], $config['json'], $config['webroot'], $config['log']);
 if (null !== $config['user']) {
     $command = sprintf('sudo -u %s -i %s', $config['user'], $command);
 }
